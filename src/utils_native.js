@@ -4,34 +4,41 @@ const assert = require("assert");
 module.exports.stringifyBigInts = function stringifyBigInts(o) {
     if ((typeof(o) == "bigint") || o.eq !== undefined)  {
         return o.toString(10);
+    } else if (o instanceof Uint8Array) {
+        return Scalar.fromRprLE(o, 0);
     } else if (Array.isArray(o)) {
         return o.map(stringifyBigInts);
     } else if (typeof o == "object") {
         const res = {};
-        for (let k in o) {
+        const keys = Object.keys(o);
+        keys.forEach( (k) => {
             res[k] = stringifyBigInts(o[k]);
-        }
+        });
         return res;
     } else {
         return o;
     }
-};
+}
 
 module.exports.unstringifyBigInts = function unstringifyBigInts(o) {
     if ((typeof(o) == "string") && (/^[0-9]+$/.test(o) ))  {
         return BigInt(o);
+    } else if ((typeof(o) == "string") && (/^0x[0-9a-fA-F]+$/.test(o) ))  {
+        return BigInt(o);
     } else if (Array.isArray(o)) {
         return o.map(unstringifyBigInts);
     } else if (typeof o == "object") {
+        if (o===null) return null;
         const res = {};
-        for (let k in o) {
+        const keys = Object.keys(o);
+        keys.forEach( (k) => {
             res[k] = unstringifyBigInts(o[k]);
-        }
+        });
         return res;
     } else {
         return o;
     }
-};
+}
 
 module.exports.beBuff2int = function beBuff2int(buff) {
     let res = 0n;
